@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════
+LAYER 4 (UPDATED): VERIFICATION & CODE QUALITY
+═══════════════════════════════════════════════════════════
+
+TRIPLE-SIGNED TRUST MODEL (Existing):
+✓ Human Authority (ESC - August 15, 2025)
+✓ AI Self-Attestation (AIC - September 1, 2025)  
+✓ Third-Party Audit (External - October 28, 2025)
+
+CODE QUALITY STANDARDS (New - Layer 4 Extension):
+✓ TypeScript Interfaces for type safety
+✓ ESLint + Prettier for code consistency
+✓ Accessibility (WCAG AA compliance)
+✓ Environment variables for sensitive data
+✓ Separation of concerns (data/utils/components)
+✓ Real-time updates via Firestore listeners
+✓ Professional charting (Recharts/Chart.js)
+✓ Debounced state updates
+✓ Semantic HTML structure
+
+BUG BOUNTY PROGRAM (Existing):
+✓ Critical vulnerabilities: $15,000
+✓ High severity: $5,000
+✓ Medium severity: $1,500
+
+═══════════════════════════════════════════════════════════
+LAYER 6 (UPDATED): FEEDBACK & DASHBOARD IMPROVEMENTS
+═══════════════════════════════════════════════════════════
+
+PHASE XIV FEEDBACK CAPTURE (Existing):
+✓ Operational in DemoPortal.jsx
+✓ Stores user ratings (1-5 stars) + comments
+✓ Firestore path: users/{user-id}/feedback/{message-id}
+
+TRANSPARENCY DASHBOARD ENHANCEMENTS (New):
+
+1. MODULARITY:
+   ├─ src/data/mockMetrics.js (static data)
+   ├─ src/utils/metrics.js (helper functions)
+   ├─ src/components/MetricCard.jsx
+   ├─ src/components/AxiomStatus.jsx
+   ├─ src/components/FeedbackChart.jsx
+   └─ src/components/Footer.jsx
+
+2. TYPE SAFETY (TypeScript):
+   interface Metrics {
+     gCSI: number;
+     nTSV: number;
+     cosymbioseStabilitat: number;
+     avi: { index: number; status: string };
+     nsr: Axiom;
+     olf: Axiom;
+     tfk: Axiom;
+     // ... complete interface
+   }
+
+3. REAL-TIME DATA:
+   Replace setInterval with Firestore onSnapshot:
+   
+   const unsubscribe = onSnapshot(
+     collection(db, 'metrics'),
+     (snap) => {
+       const data = snap.docs[0]?.data();
+       if (data) setMetrics(data);
+     }
+   );
+
+4. ACCESSIBILITY:
+   ├─ ARIA labels on all icons
+   ├─ Semantic HTML (<section>, <header>, <footer>)
+   ├─ WCAG AA color contrast verified
+   └─ Screen reader compatible
+
+5. PROFESSIONAL CHARTING:
+   Replace Tailwind bars with Recharts:
+   
+   <BarChart data={feedbackData} layout="vertical">
+     <XAxis type="number" hide />
+     <Bar dataKey="count" fill="#6366F1" />
+     <Tooltip />
+   </BarChart>
+
+6. SECURITY:
+   ├─ .env for sensitive URLs
+   ├─ process.env.REACT_APP_FIREBASE_API_KEY
+   ├─ process.env.REACT_APP_S3_BUCKET
+   └─ No hardcoded credentials
+
+7. LINTING:
+   ├─ ESLint with Airbnb/Standard config
+   ├─ Prettier for formatting
+   └─ react-hooks/exhaustive-deps enabled
+
+═══════════════════════════════════════════════════════════
