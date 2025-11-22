@@ -1,0 +1,22 @@
+1. Login zu AWS Console: https://console.aws.amazon.com
+
+2. Navigate zu IAM:
+   - Klick auf Ihren Namen oben rechts
+   - "Security credentials"
+
+3. Create Access Key:
+   - Scroll zu "Access keys"
+   - "Create access key"
+   - Select use case: "Command Line Interface (CLI)"
+   - "Create access key"
+
+4. WICHTIG: 
+   - Access Key wird angezeigt
+   - Secret Key wird NUR EINMAL angezeigt
+   - Download .csv file oder kopieren Sie beide sicher
+
+5. NIEMALS:
+   - In Chat posten
+   - In Code committen
+   - Per Email senden
+   - Auf Screenshot teilen
