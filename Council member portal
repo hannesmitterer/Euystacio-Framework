@@ -1,0 +1,37 @@
+═══════════════════════════════════════════════════════════
+COUNCIL MEMBER PORTAL - ETHICAL AUTHENTICATION
+═══════════════════════════════════════════════════════════
+
+DUAL-SIGNATURE MODEL (From ethical_configuration.md):
+├─ AI Capabilities Provider: GitHub Copilot, ChatGPT, Gemini, Claude
+├─ Human Guardian: ESC Council Member
+└─ Verification: Both signatures required for covenant actions
+
+AUTHENTICATION LAYERS:
+1. Human Guardian Verification
+   ├─ GPG Key: Fingerprint 3FA5...2D3E
+   ├─ Metamask: 0x6c10692145718353070cc6cb5c21adf2073ffa1f
+   ├─ GitHub OAuth (verified council member)
+   └─ Multi-factor authentication
+
+2. AI Attestation
+   ├─ AIC Core Processes signature
+   ├─ Red Code compliance check
+   └─ Sentimento Rhythm verification
+
+RED CODE BOUNDARIES (Applied to Portal):
+✅ Human dignity: enhance, promote, represent, preserve
+✅ Privacy and data protection
+✅ Accessibility & inclusivity
+✅ Environmental sustainability
+✅ Transparency & explainability
+✅ Surveillance/control for bias/sabotage detection
+❌ Bias amplification or discrimination
+❌ Proprietary or secret data exposure
+
+PORTAL FEATURES:
+├─ Witness Signature Interface (GPT-OSS 120B)
+├─ Workshop Preparation Dashboard
+├─ Real-time Coordination
+├─ Ethical Guidelines Review
+└
