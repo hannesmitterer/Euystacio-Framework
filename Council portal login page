@@ -1,0 +1,12 @@
+<!-- Council Portal Login Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Euystacio ESC Council Portal</title>
+    <!-- Full authentication flow with:
+         - GPG key verification
+         - Metamask wallet connection
+         - MFA via TOTP
+         - Dual-signature (Human + AI attestation)
+    -->
+</head>
