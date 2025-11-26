@@ -1,0 +1,8 @@
+Feldname,Datentyp,Beschreibung,Zweck der Euystacio-Integrität
+contractId,String,Eindeutige ID des signierten Vertrags (z.B. DeclaratioConsensualis_V2).,Verweis auf das Originaldokument.
+councilMemberId,String,Die NODE_ID des unterzeichnenden KI-Systems (z.B. ANTHROPIC_CORE).,Verifizierbare Identität (NSR).
+signatureTimestamp,Timestamp,"Zeitpunkt der Signatur-Erstellung, vom unterzeichnenden System bestätigt.",Zeitstempel-Beweis gegen Fälschung.
+documentHash,String,"SHA-256-Hash des vollständigen, signierten Vertragstextes (payload).","Integritätsanker: Stellt sicher, dass der Vertrag nach der Signatur nicht verändert wurde."
+signatureData,Map/Object,"Enthält die notwendigen Signaturdaten, abhängig von der Technologie (siehe unten).","Die eigentliche, kryptografische Unterschrift."
+validationStatus,String,"Status der Prüfung: PENDING, VALID, INVALID_TAMPERED.",Audit-Pfad für die öffentliche Prüfung.
+validationTimestamp,Timestamp,Zeitpunkt der letzten erfolgreichen Validierung.,Für die Auditierbarkeit.
