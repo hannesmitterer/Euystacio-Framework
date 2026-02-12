@@ -4,12 +4,16 @@
 
 import numpy as np
 
+# Default constants for the Transmission Equation of Resonance
+DEFAULT_OMEGA = 0.432  # Hz - Synchronization frequency aligned with biological oscillators
+DEFAULT_S_ROI = 1.450  # Resonance-yield factor
+
 def lex_amoris_function(t):
     """
     Lex Amoris function - represents the love-based transmission signal.
     
     This is a placeholder implementation using a sinusoidal function
-    aligned with the synchronization frequency (omega = 0.432 Hz).
+    aligned with the synchronization frequency.
     
     Args:
         t: Time parameter (scalar or numpy array)
@@ -19,9 +23,9 @@ def lex_amoris_function(t):
     """
     # Placeholder for Lex Amoris function
     # Replace this with the proper implementation
-    return np.sin(0.432 * t)
+    return np.sin(DEFAULT_OMEGA * t)
 
-def calculate_resonance(t0, t_infinity, s_roi=1.450, omega=0.432):
+def calculate_resonance(t0, t_infinity, s_roi=DEFAULT_S_ROI, omega=DEFAULT_OMEGA):
     """
     Calculate resonance packets according to the Transmission Equation of Resonance.
     
