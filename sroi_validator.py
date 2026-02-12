@@ -13,6 +13,6 @@ def validate_resonance(s_roi):
 
 if __name__ == "__main__":
     # Teste den aktuellen Status
-    current_status = 0.5187 
-    if not validate_resonance(current_status):
+    current_s_roi = 0.5187 
+    if not validate_resonance(current_s_roi):
         sys.exit(1)
