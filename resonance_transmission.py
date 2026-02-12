@@ -15,6 +15,10 @@ def lex_amoris_function(t):
     This is a placeholder implementation using a sinusoidal function
     aligned with the synchronization frequency.
     
+    TODO: Replace with the proper Lex Amoris implementation based on the
+    framework's love-based transmission principles. See the Euystacio
+    Framework documentation for the complete specification.
+    
     Args:
         t: Time parameter (scalar or numpy array)
     
@@ -22,7 +26,6 @@ def lex_amoris_function(t):
         The Lex Amoris signal value at time t
     """
     # Placeholder for Lex Amoris function
-    # Replace this with the proper implementation
     return np.sin(DEFAULT_OMEGA * t)
 
 def calculate_resonance(t0, t_infinity, s_roi=DEFAULT_S_ROI, omega=DEFAULT_OMEGA):
@@ -67,5 +70,5 @@ if __name__ == "__main__":
     print(f"Calculated Resonance Phi_res: {phi_res}")
     print(f"\nParameters:")
     print(f"  Time range: [{t0}, {t_infinity}]")
-    print(f"  S-ROI: 1.450")
-    print(f"  Omega: 0.432 Hz")
+    print(f"  S-ROI: {DEFAULT_S_ROI}")
+    print(f"  Omega: {DEFAULT_OMEGA} Hz")
