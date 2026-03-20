@@ -1,0 +1,102 @@
+# Euystacio AI Ecosystem – Alerting Rules (Step 8)
+#
+# Compatible with Prometheus Alertmanager and Grafana Unified Alerting.
+# Telegram / Discord notification channels are configured in alertmanager.yml.
+
+groups:
+  - name: euystacio.vitaltrust
+    rules:
+      # Alert when any L2 AH pool drops below 20 % of its target level.
+      - alert: VitalTrustPoolDepleted
+        expr: |
+          (euystacio_ah_pool_balance / euystacio_ah_pool_target) * 100 < 20
+        for: 5m
+        labels:
+          severity: critical
+          team: euystacio
+        annotations:
+          summary: "AH pool balance critically low on {{ $labels.l2 }}"
+          description: >
+            The VitalTrust AH pool on {{ $labels.l2 }} has fallen below 20 % of
+            its target.  Current: {{ $value | humanize }}.
+            Action: trigger BridgeAggregator.rebalance() immediately.
+          telegram_message: |
+            🚨 *CRITICAL – AH Pool Depleted*
+            L2: `{{ $labels.l2 }}`
+            Balance: `{{ $value | humanize }}` (< 20 % target)
+            Please trigger rebalancing now.
+
+  - name: euystacio.reputation
+    rules:
+      # Alert when any AI agent exceeds the negative reputation threshold (< -10).
+      - alert: AIReputationNegative
+        expr: euystacio_ai_reputation_score < -10
+        for: 1m
+        labels:
+          severity: warning
+          team: euystacio
+        annotations:
+          summary: "AI agent {{ $labels.ai }} has negative reputation score"
+          description: >
+            Agent {{ $labels.ai }} has reputation score {{ $value }}.
+            This may indicate repeated whitelist violations or signature errors.
+          telegram_message: |
+            ⚠️ *WARNING – Negative AI Reputation*
+            Agent: `{{ $labels.ai }}`
+            Score: `{{ $value }}`
+            Review recent actions of this agent.
+
+  - name: euystacio.biosensor
+    rules:
+      # Alert on new sensor firmware registrations (potential supply-chain attack).
+      - alert: NewSensorFirmwareRegistered
+        expr: increase(euystacio_sensor_firmware_registrations_total[10m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+          team: euystacio
+        annotations:
+          summary: "New sensor firmware registered – potential vulnerability"
+          description: >
+            A new IoT sensor firmware was registered in the last 10 minutes.
+            Verify the firmware hash against the approved firmware registry.
+          telegram_message: |
+            ⚠️ *WARNING – New Sensor Firmware*
+            A new firmware was registered for an IoT sensor node.
+            Please verify the firmware integrity immediately.
+
+      # Alert if bio-signal frequency drops to zero (sensor offline).
+      - alert: BioSignalSilence
+        expr: rate(euystacio_bio_signal_total[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+          team: euystacio
+        annotations:
+          summary: "No BioSignal events for 30 minutes"
+          description: >
+            No BioSignal events have been received for 30 minutes.
+            The IoT sensor node may be offline.
+          telegram_message: |
+            ⚠️ *WARNING – BioSignal Silence*
+            No sensor data for 30 minutes.  Check Raspberry Pi / ESP32 nodes.
+
+  - name: euystacio.bridge
+    rules:
+      # Alert if rebalancing has not occurred within 14 hours (keeper may be down).
+      - alert: RebalanceOverdue
+        expr: |
+          (time() - euystacio_last_rebalance_timestamp) > 50400
+        for: 5m
+        labels:
+          severity: warning
+          team: euystacio
+        annotations:
+          summary: "BridgeAggregator rebalance is overdue"
+          description: >
+            The last rebalancing occurred more than 14 hours ago.
+            Expected interval: 12 hours.  Check Gelato / Chainlink Keeper status.
+          telegram_message: |
+            ⚠️ *WARNING – Rebalance Overdue*
+            Last rebalance: `{{ $value | humanizeDuration }}` ago.
+            Check the keeper bot.

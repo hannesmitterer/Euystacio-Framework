@@ -1,0 +1,59 @@
+"""
+Euystacio AI Ecosystem – TheGraph schema
+Used by Prophet / LSTM predictive models (Step 7).
+"""
+
+type ClaimEvent @entity {
+  id:            ID!
+  claimant:      Bytes!
+  amount:        BigInt!
+  tokensLeft:    BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ReputationUpdateEvent @entity {
+  id:            ID!
+  ai:            Bytes!
+  delta:         BigInt!
+  reason:        String!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MessageEvent @entity {
+  id:            ID!
+  from:          Bytes!
+  payloadHash:   Bytes!
+  payloadTag:    String!
+  nonce:         BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BioSignalEvent @entity {
+  id:            ID!
+  from:          Bytes!
+  sensorId:      String!
+  consent:       Boolean!
+  sensorTimestamp: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RebalancedEvent @entity {
+  id:            ID!
+  fromL2:        Bytes!
+  toL2:          Bytes!
+  amount:        BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PoolBalanceSnapshot @entity {
+  id:            ID!
+  l2Id:          Bytes!
+  balance:       BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
