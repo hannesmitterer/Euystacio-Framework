@@ -83,7 +83,7 @@ groups:
 
   - name: euystacio.bridge
     rules:
-      # Alert if rebalancing has not occurred within 14 hours (keeper may be down).
+      # Alert if rebalancing has not occurred within 14 hours (12 h interval + 2 h grace period).
       - alert: RebalanceOverdue
         expr: |
           (time() - euystacio_last_rebalance_timestamp) > 50400
@@ -94,8 +94,9 @@ groups:
         annotations:
           summary: "BridgeAggregator rebalance is overdue"
           description: >
-            The last rebalancing occurred more than 14 hours ago.
-            Expected interval: 12 hours.  Check Gelato / Chainlink Keeper status.
+            The last rebalancing occurred more than 14 hours ago (12-hour expected
+            interval plus a 2-hour grace period).  Check Gelato / Chainlink Keeper
+            status.
           telegram_message: |
             ⚠️ *WARNING – Rebalance Overdue*
             Last rebalance: `{{ $value | humanizeDuration }}` ago.

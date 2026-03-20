@@ -11,7 +11,7 @@ export function handleClaimed(event: ClaimedEvent): void {
   let entity = new ClaimEvent(id);
   entity.claimant        = event.params.claimant;
   entity.amount          = event.params.amount;
-  entity.tokensLeft      = event.params.tokensRemaining;
+  entity.tokensRemaining = event.params.tokensRemaining;
   entity.blockTimestamp  = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
   entity.save();

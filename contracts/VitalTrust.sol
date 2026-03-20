@@ -13,8 +13,8 @@ import "./ILexAmorisWhitelist.sol";
 ///         ReputationOracle (Step 4).
 ///
 /// Rate-limiter design (Step 2):
-///   - MAX_TOKENS = 5  → at most 5 claims per 24 h window
-///   - REFILL_RATE: 1 token refilled every 5 hours
+///   - MAX_TOKENS = 5  → at most 5 claims per bucket fill
+///   - REFILL_RATE: 1 token refilled every 5 hours (full refill after 25 hours)
 ///   - The bucket is lazily refilled on each interaction.
 contract VitalTrust is Ownable, Pausable, ReentrancyGuard {
     // -----------------------------------------------------------------------

@@ -7,7 +7,7 @@ type ClaimEvent @entity {
   id:            ID!
   claimant:      Bytes!
   amount:        BigInt!
-  tokensLeft:    BigInt!
+  tokensRemaining: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
@@ -43,8 +43,8 @@ type BioSignalEvent @entity {
 
 type RebalancedEvent @entity {
   id:            ID!
-  fromL2:        Bytes!
-  toL2:          Bytes!
+  fromL2Id:      Bytes!
+  toL2Id:        Bytes!
   amount:        BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

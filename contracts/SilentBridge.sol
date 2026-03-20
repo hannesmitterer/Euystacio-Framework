@@ -114,7 +114,7 @@ contract SilentBridge is Ownable, Pausable, ReentrancyGuard {
     // -----------------------------------------------------------------------
 
     /// @notice Submit a bio-sensor reading signed by a trusted TripleSign node.
-    /// @param payload  ABI-encoded BioSignalPayload struct.
+    /// @param payload  ABI-encoded tuple `(string sensorId, uint256 timestamp, bool consent)`.
     /// @param sig      ECDSA signature over keccak256(payload) by a trusted signer.
     function postBioSignal(bytes calldata payload, bytes calldata sig)
         external
@@ -126,20 +126,10 @@ contract SilentBridge is Ownable, Pausable, ReentrancyGuard {
         address signer = msgHash.recover(sig);
         require(trustedSigners[signer], "SilentBridge: untrusted signer");
 
-        // Decode payload
-        (string memory sensorId, uint256 sensorTimestamp, string memory valueStr) =
-            abi.decode(payload, (string, uint256, string));
-
-        // Validate consent value
-        bool consent;
-        bytes32 valueHash = keccak256(bytes(valueStr));
-        if (valueHash == keccak256(bytes("YES"))) {
-            consent = true;
-        } else if (valueHash == keccak256(bytes("NO"))) {
-            consent = false;
-        } else {
-            revert("SilentBridge: invalid bio-signal value (expected YES or NO)");
-        }
+        // Decode payload: (sensorId, sensorTimestamp, consent)
+        // Encoded as (string, uint256, bool) by IoT node client.
+        (string memory sensorId, uint256 sensorTimestamp, bool consent) =
+            abi.decode(payload, (string, uint256, bool));
 
         emit BioSignal(msg.sender, sensorId, consent, sensorTimestamp);
         emit ReputationUpdate(msg.sender, 1, "bio_signal_submitted");

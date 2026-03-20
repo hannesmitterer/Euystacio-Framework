@@ -9,8 +9,8 @@ import { RebalancedEvent as RebalancedEntity, PoolBalanceSnapshot } from "../gen
 export function handleRebalanced(event: RebalancedEvent): void {
   let id = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
   let entity = new RebalancedEntity(id);
-  entity.fromL2          = event.params.from;
-  entity.toL2            = event.params.to;
+  entity.fromL2Id        = event.params.from;
+  entity.toL2Id          = event.params.to;
   entity.amount          = event.params.amount;
   entity.blockTimestamp  = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;

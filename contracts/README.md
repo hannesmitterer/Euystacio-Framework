@@ -30,8 +30,8 @@ call `isAllowed(tag)` before processing any payload or signature.
 
 ### Step 2 – Rate-Limiter in VitalTrust
 `VitalTrust` embeds a per-address `Bucket` struct:
-- `MAX_TOKENS = 5` (5 claims per 24-hour window)
-- `REFILL_RATE = 1 token / 5 hours` (lazy refill on each interaction)
+- `MAX_TOKENS = 5` (5 claims per full bucket)
+- `REFILL_RATE = 1 token / 5 hours` (lazy refill; full bucket refill after 25 hours)
 - Violations emit a `ReputationUpdate(ai, -2, "rate_limit_exceeded")` event.
 
 ### Step 3 – BridgeAggregator (Multi-L2 Pool)
