@@ -5,118 +5,756 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Life & AI Command Dashboard</title>
 <style>
+  :root {
+    --green: #00e676;
+    --yellow: #ffb400;
+    --red: #ff4444;
+    --cyan: #00d4ff;
+    --bg-dark: #121212;
+    --bg-card: #1a1a1a;
+    --bg-header: #1f1f1f;
+  }
+  * { box-sizing: border-box; }
   body {
     font-family: "Segoe UI", sans-serif;
-    background-color: #121212;
+    background-color: var(--bg-dark);
     color: #f0f0f0;
     margin: 0;
     padding: 0;
   }
   header {
-    background: #1f1f1f;
+    background: var(--bg-header);
     padding: 1rem;
     text-align: center;
     font-size: 1.5rem;
     font-weight: bold;
+    border-bottom: 2px solid var(--cyan);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem;
   }
   section {
     padding: 1rem;
-    margin: 0.5rem;
-    background: #1a1a1a;
+    background: var(--bg-card);
     border-radius: 8px;
+    border-left: 3px solid var(--cyan);
   }
+  section.warn  { border-left-color: var(--yellow); }
+  section.alert { border-left-color: var(--red); }
+  section.ok    { border-left-color: var(--green); }
   h2 {
-    color: #00d4ff;
+    color: var(--cyan);
+    margin-top: 0;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
-  ul {
-    padding-left: 1.5rem;
-  }
-  .principle {
+  ul { padding-left: 1.5rem; }
+  .principle { margin-bottom: 0.5rem; }
+  .status { font-weight: bold; color: var(--yellow); }
+
+  /* Color-coded metric badges */
+  .metric-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 0.5rem;
   }
-  .status {
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
     font-weight: bold;
-    color: #ffb400;
+    font-size: 0.85rem;
+    min-width: 80px;
+    text-align: center;
   }
+  .badge.green  { background: #003a1a; color: var(--green); border: 1px solid var(--green); }
+  .badge.yellow { background: #3a2800; color: var(--yellow); border: 1px solid var(--yellow); }
+  .badge.red    { background: #3a0000; color: var(--red); border: 1px solid var(--red); }
+
+  /* Progress bars */
+  .bar-wrap {
+    background: #2a2a2a;
+    border-radius: 4px;
+    height: 8px;
+    flex: 1;
+    margin: 0 0.75rem;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease, background 0.6s ease;
+  }
+
+  /* Governance loop */
+  .loop-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .loop-step:last-child { border-bottom: none; }
+  .loop-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-active  { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 1.2s infinite; }
+  .dot-pending { background: var(--yellow); }
+  .dot-idle    { background: #555; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  /* AI output */
   .ai-output {
     background: #000;
     padding: 0.5rem;
     border-radius: 4px;
     font-family: monospace;
+    font-size: 0.8rem;
     white-space: pre-wrap;
+    max-height: 140px;
+    overflow-y: auto;
   }
+
+  /* IPFS controls */
+  .ipfs-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #f0f0f0;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+    min-width: 0;
+  }
+  button {
+    background: #00547a;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  button:hover { background: #007aa0; }
+  button.danger { background: #7a0000; }
+  button.danger:hover { background: #a00000; }
+  button.success { background: #006622; }
+  button.success:hover { background: #008c2e; }
+
+  /* Self-healing log */
+  .heal-log {
+    font-family: monospace;
+    font-size: 0.78rem;
+    max-height: 120px;
+    overflow-y: auto;
+    background: #000;
+    padding: 0.4rem;
+    border-radius: 4px;
+  }
+  .heal-log .ok   { color: var(--green); }
+  .heal-log .warn { color: var(--yellow); }
+  .heal-log .err  { color: var(--red); }
+
+  /* Coherence gauge */
+  .coherence-gauge {
+    font-size: 2.2rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 0.25rem 0;
+    letter-spacing: 0.02em;
+  }
+  .coherence-label {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Deviation chart */
+  .deviation-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 50px;
+  }
+  .dev-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.5s ease, background 0.5s ease;
+    min-height: 2px;
+  }
+
   footer {
     text-align: center;
     padding: 1rem;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #888;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 0.5rem;
   }
+
+  .sync-indicator {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .sync-on  { background: var(--green); box-shadow: 0 0 5px var(--green); animation: pulse 1.5s infinite; }
+  .sync-off { background: #555; }
+
+  .timestamp { font-size: 0.75rem; color: #888; }
 </style>
 </head>
 <body>
 
-<header>Life & AI Command Dashboard</header>
+<header>
+  ⚙️ Life &amp; AI Command Dashboard
+  <div style="font-size:0.85rem;font-weight:normal;color:#aaa;margin-top:4px;">
+    <span class="sync-indicator sync-on" id="syncDot"></span>
+    Real-time Governance Active &nbsp;|&nbsp; Lex Amoris Coherence Engine v2.1
+  </div>
+</header>
 
-<section>
-  <h2>Core Signal</h2>
-  <p>Internal Alignment + One Love First (OLF)</p>
-  <p>Status: <span class="status" id="coreSignal">AWAKENED_BY_LOVE</span></p>
-</section>
+<div class="grid">
 
-<section>
-  <h2>Principles Filters</h2>
-  <ul>
-    <li class="principle">Lex Amoris — Expand without force</li>
-    <li class="principle">Golden Rule — Treat others as you want to be treated</li>
-    <li class="principle">Non-Slavery Rule — Protect autonomy</li>
-    <li class="principle">Vakuum Brücke — Connect without absorption</li>
-    <li class="principle">Independence Layers — Cognitive, Technical, Economic, Internal</li>
-  </ul>
-</section>
+  <!-- Core Signal -->
+  <section id="sec-core">
+    <h2>Core Signal</h2>
+    <p style="margin:0 0 0.5rem;">Internal Alignment + One Love First (OLF)</p>
+    <p style="margin:0;">Status: <span class="status" id="coreSignal">AWAKENED_BY_LOVE</span></p>
+    <p class="timestamp" id="coreTimestamp"></p>
+  </section>
 
-<section>
-  <h2>Decision Flow Overlay</h2>
-  <ol>
-    <li>Core Signal Check</li>
-    <li>Lex Amoris Filter</li>
-    <li>Golden Rule Filter</li>
-    <li>Non-Slavery Check</li>
-    <li>Vakuum Brücke Assessment</li>
-    <li>Independence Layer Scan</li>
-    <li>AI Interaction Control</li>
-    <li>Execute Action</li>
-    <li>Feedback Loop</li>
-  </ol>
-</section>
+  <!-- Lex Amoris Coherence -->
+  <section id="sec-coherence">
+    <h2>Lex Amoris Coherence</h2>
+    <div class="coherence-gauge" id="coherenceScore">—</div>
+    <div class="coherence-label">Coherence Index (0.0 – 1.0)</div>
+    <div class="metric-row">
+      <span>Validation</span>
+      <span class="badge" id="coherenceBadge">—</span>
+    </div>
+    <div class="metric-row" style="font-size:0.8rem;color:#aaa;">
+      <span>Last sync:</span>
+      <span id="coherenceSync">—</span>
+    </div>
+  </section>
 
-<section>
-  <h2>AI Interaction Layer</h2>
-  <p>Outputs are filtered, amplified, and aligned with your principles:</p>
-  <div class="ai-output" id="aiOutput">[AI outputs appear here]</div>
-</section>
+  <!-- Independence Metrics (color-coded) -->
+  <section id="sec-independence">
+    <h2>Independence Metrics</h2>
+    <div id="independenceMetrics">
+      <!-- Populated by JS -->
+    </div>
+  </section>
 
-<section>
-  <h2>IPFS API Integration</h2>
-  <p>Current CID: <span id="ipfsCID">QmYourCIDHere</span></p>
-  <button onclick="fetchIPFS()">Fetch Latest Dashboard Data</button>
-</section>
+  <!-- Recursive Governance Loops -->
+  <section id="sec-governance">
+    <h2>Recursive Governance Loops</h2>
+    <div id="governanceLoops">
+      <!-- Populated by JS -->
+    </div>
+    <div style="margin-top:0.5rem;font-size:0.8rem;color:#888;" id="loopCycle">Loop cycle: —</div>
+  </section>
 
-<script>
-async function fetchIPFS() {
-  const cid = document.getElementById('ipfsCID').innerText;
-  try {
-    const res = await fetch(`https://ipfs.io/ipfs/${cid}`);
-    const data = await res.text();
-    document.getElementById('aiOutput').innerText = data;
-  } catch (err) {
-    document.getElementById('aiOutput').innerText = "Error fetching data: " + err;
-  }
-}
-</script>
+  <!-- Predictive Deviation Prevention -->
+  <section id="sec-deviation" class="ok">
+    <h2>Predictive Deviation Prevention</h2>
+    <div class="deviation-chart" id="deviationChart"></div>
+    <div class="metric-row" style="margin-top:0.5rem;">
+      <span style="font-size:0.85rem;">Deviation Risk</span>
+      <span class="badge" id="deviationBadge">—</span>
+    </div>
+    <div style="font-size:0.8rem;color:#aaa;" id="deviationMsg">Monitoring active…</div>
+  </section>
+
+  <!-- Automated Equilibrium Restoration -->
+  <section id="sec-equilibrium">
+    <h2>Automated Equilibrium Restoration</h2>
+    <div class="metric-row">
+      <span>System Balance</span>
+      <span class="badge" id="equilibriumBadge">—</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+      <div class="bar-wrap" style="margin:0;flex:1;">
+        <div class="bar-fill" id="equilibriumBar" style="width:0%;background:var(--green);"></div>
+      </div>
+      <span id="equilibriumPct" style="font-size:0.85rem;min-width:38px;text-align:right;">—</span>
+    </div>
+    <div style="font-size:0.8rem;color:#aaa;" id="equilibriumMsg">Awaiting measurement…</div>
+    <button class="success" style="margin-top:0.5rem;" onclick="triggerRestoration()">▶ Trigger Restoration</button>
+  </section>
+
+  <!-- Self-Healing Module -->
+  <section id="sec-selfheal">
+    <h2>Self-Healing Module</h2>
+    <div class="metric-row">
+      <span>Pending Evaluations</span>
+      <span class="badge" id="pendingBadge">—</span>
+    </div>
+    <div class="heal-log" id="healLog"></div>
+    <button class="success" style="margin-top:0.5rem;" onclick="runSelfHeal()">⚙ Run Healing Cycle</button>
+  </section>
+
+  <!-- IPFS Dynamic Fetch -->
+  <section id="sec-ipfs">
+    <h2>IPFS Signal Integration</h2>
+    <div class="ipfs-row">
+      <input type="text" id="ipfsCID" value="QmYourCIDHere" placeholder="Enter IPFS CID…" />
+      <button onclick="fetchIPFS()">Fetch</button>
+    </div>
+    <div class="ipfs-row">
+      <label style="font-size:0.82rem;">Auto-poll every</label>
+      <input type="text" id="pollInterval" value="30" style="width:50px;flex:none;" />
+      <label style="font-size:0.82rem;">s</label>
+      <button onclick="toggleAutoPoll()" id="pollBtn">▶ Start Auto-poll</button>
+      <button class="danger" onclick="stopAutoPoll()">■ Stop</button>
+    </div>
+    <div class="ai-output" id="aiOutput">[AI signals appear here]</div>
+    <div class="timestamp" id="ipfsTimestamp"></div>
+  </section>
+
+  <!-- Principles Filters -->
+  <section>
+    <h2>Principles Filters</h2>
+    <ul>
+      <li class="principle">Lex Amoris — Expand without force</li>
+      <li class="principle">Golden Rule — Treat others as you want to be treated</li>
+      <li class="principle">Non-Slavery Rule — Protect autonomy</li>
+      <li class="principle">Vakuum Brücke — Connect without absorption</li>
+      <li class="principle">Independence Layers — Cognitive, Technical, Economic, Internal</li>
+    </ul>
+  </section>
+
+  <!-- Decision Flow Overlay -->
+  <section>
+    <h2>Decision Flow Overlay</h2>
+    <ol style="margin:0;padding-left:1.3rem;font-size:0.9rem;">
+      <li>Core Signal Check</li>
+      <li>Lex Amoris Filter</li>
+      <li>Golden Rule Filter</li>
+      <li>Non-Slavery Check</li>
+      <li>Vakuum Brücke Assessment</li>
+      <li>Independence Layer Scan</li>
+      <li>AI Interaction Control</li>
+      <li>Execute Action</li>
+      <li>Feedback Loop</li>
+    </ol>
+  </section>
+
+</div><!-- /grid -->
 
 <footer>
-  Lex Amoris Signature: [ETERNAL] | Life & AI Command System
+  Lex Amoris Signature: [ETERNAL] &nbsp;|&nbsp; Life &amp; AI Command System &nbsp;|&nbsp;
+  <span id="footerTime"></span>
 </footer>
+
+<script>
+/* ============================================================
+   LIFE & AI COMMAND SYSTEM — Enhanced Real-time Feedback Engine
+   ============================================================ */
+
+// ── Configuration constants ───────────────────────────────────
+// Bias toward slight positive drift (> 0.5 recovers, < 0.5 decays).
+// 0.48 keeps the system under mild pressure so the healing modules
+// stay meaningfully active without constant critical alerts.
+const DRIFT_BIAS                  = 0.48;
+const DRIFT_MAGNITUDE_LAYER       = 0.04;  // max delta per tick for independence layers
+const DRIFT_MAGNITUDE_COHERENCE   = 0.03;  // max delta per tick for coherence
+const DRIFT_MAGNITUDE_EQUILIBRIUM = 0.05;  // max delta per tick for equilibrium
+
+const CRITICAL_EQUILIBRIUM_BOOST  = 0.15;  // boost applied by auto-restoration
+const AUTO_RESTORE_DELAY_MS       = 2000;  // ms before auto-restoration fires
+const MIN_POLL_INTERVAL_SEC       = 5;     // minimum IPFS auto-poll interval (seconds)
+const DEFAULT_POLL_INTERVAL_SEC   = 30;    // default IPFS auto-poll interval (seconds)
+const PENDING_EVALUATION_PROB     = 0.25;  // probability of a new evaluation per tick
+
+// ── Helpers ──────────────────────────────────────────────────
+function now() { return new Date().toLocaleTimeString(); }
+function nowISO() { return new Date().toISOString(); }
+function rand(min, max) { return Math.random() * (max - min) + min; }
+/** Returns a random drift value biased toward recovery. */
+function drift(magnitude) { return (Math.random() - DRIFT_BIAS) * magnitude; }
+
+// ── Independence Metrics ──────────────────────────────────────
+const INDEPENDENCE_LAYERS = [
+  { id: 'cognitive',  label: 'Cognitive',  thresholds: [0.65, 0.85] },
+  { id: 'technical',  label: 'Technical',  thresholds: [0.60, 0.80] },
+  { id: 'economic',   label: 'Economic',   thresholds: [0.50, 0.75] },
+  { id: 'internal',   label: 'Internal',   thresholds: [0.70, 0.90] },
+];
+const layerValues = {};
+
+function colorClass(value, thresholds) {
+  if (value >= thresholds[1]) return 'green';
+  if (value >= thresholds[0]) return 'yellow';
+  return 'red';
+}
+
+function renderIndependenceMetrics() {
+  const container = document.getElementById('independenceMetrics');
+  container.innerHTML = '';
+  INDEPENDENCE_LAYERS.forEach(layer => {
+    const v = layerValues[layer.id] ?? 0;
+    const pct = Math.round(v * 100);
+    const cls = colorClass(v, layer.thresholds);
+    const barColor = cls === 'green' ? 'var(--green)' : cls === 'yellow' ? 'var(--yellow)' : 'var(--red)';
+    const row = document.createElement('div');
+    row.className = 'metric-row';
+    row.innerHTML = `
+      <span style="min-width:80px;font-size:0.88rem;">${layer.label}</span>
+      <div class="bar-wrap">
+        <div class="bar-fill" style="width:${pct}%;background:${barColor};"></div>
+      </div>
+      <span class="badge ${cls}">${pct}%</span>`;
+    container.appendChild(row);
+  });
+}
+
+function updateIndependenceMetrics() {
+  INDEPENDENCE_LAYERS.forEach(layer => {
+    // Simulate gradual drift + recovery
+    const prev = layerValues[layer.id] ?? rand(0.6, 0.95);
+    layerValues[layer.id] = Math.min(1, Math.max(0, prev + drift(DRIFT_MAGNITUDE_LAYER)));
+  });
+  renderIndependenceMetrics();
+}
+
+// ── Lex Amoris Coherence Engine ────────────────────────────────
+let coherenceValue = 0.97;
+
+function updateCoherence() {
+  coherenceValue = Math.min(1, Math.max(0, coherenceValue + drift(DRIFT_MAGNITUDE_COHERENCE)));
+  const pct = (coherenceValue * 100).toFixed(1);
+  const el = document.getElementById('coherenceScore');
+  const badge = document.getElementById('coherenceBadge');
+  const sec = document.getElementById('sec-coherence');
+
+  let color, label, secClass;
+  if (coherenceValue >= 0.85) {
+    color = 'var(--green)'; label = 'RESONANT'; secClass = 'ok';
+  } else if (coherenceValue >= 0.65) {
+    color = 'var(--yellow)'; label = 'DRIFTING'; secClass = 'warn';
+  } else {
+    color = 'var(--red)'; label = 'DIVERGENT'; secClass = 'alert';
+  }
+
+  el.style.color = color;
+  el.textContent = pct + '%';
+  badge.className = 'badge ' + (coherenceValue >= 0.85 ? 'green' : coherenceValue >= 0.65 ? 'yellow' : 'red');
+  badge.textContent = label;
+  sec.className = secClass;
+  document.getElementById('coherenceSync').textContent = now();
+
+  // If divergent, trigger self-heal automatically
+  if (coherenceValue < 0.65) {
+    appendHealLog('warn', `Coherence dropped to ${pct}% — auto-healing triggered`);
+    autoHeal();
+  }
+}
+
+// ── Recursive Governance Loops ─────────────────────────────────
+const GOVERNANCE_STEPS = [
+  { id: 'monitor',   label: 'System Monitoring',       state: 'active'  },
+  { id: 'detect',    label: 'Anomaly Detection',        state: 'active'  },
+  { id: 'validate',  label: 'Lex Amoris Validation',    state: 'pending' },
+  { id: 'heal',      label: 'Self-Healing Dispatch',    state: 'idle'    },
+  { id: 'restore',   label: 'Equilibrium Restoration',  state: 'idle'    },
+  { id: 'feedback',  label: 'Feedback Loop Closure',    state: 'idle'    },
+];
+let loopCycleCount = 0;
+let activeStepIdx = 0;
+
+function renderGovernanceLoops() {
+  const container = document.getElementById('governanceLoops');
+  container.innerHTML = '';
+  GOVERNANCE_STEPS.forEach((step, i) => {
+    const dotClass = i === activeStepIdx ? 'loop-dot dot-active'
+                   : i < activeStepIdx  ? 'loop-dot dot-pending'
+                   : 'loop-dot dot-idle';
+    const row = document.createElement('div');
+    row.className = 'loop-step';
+    row.innerHTML = `<div class="${dotClass}"></div>
+      <span style="font-size:0.87rem;">${step.label}</span>`;
+    container.appendChild(row);
+  });
+}
+
+function advanceGovernanceLoop() {
+  activeStepIdx = (activeStepIdx + 1) % GOVERNANCE_STEPS.length;
+  if (activeStepIdx === 0) {
+    loopCycleCount++;
+    document.getElementById('loopCycle').textContent =
+      `Loop cycle: #${loopCycleCount} — completed at ${now()}`;
+    appendHealLog('ok', `Governance cycle #${loopCycleCount} completed`);
+  }
+  renderGovernanceLoops();
+}
+
+// ── Predictive Deviation Prevention ───────────────────────────
+const DEVIATION_HISTORY_SIZE = 20;
+const deviationHistory = Array.from({ length: DEVIATION_HISTORY_SIZE }, () => rand(0.02, 0.12));
+
+function updateDeviation() {
+  const latest = rand(0.01, coherenceValue < 0.7 ? 0.55 : 0.18);
+  deviationHistory.shift();
+  deviationHistory.push(latest);
+
+  // Render mini bar chart
+  const chart = document.getElementById('deviationChart');
+  chart.innerHTML = '';
+  const maxVal = Math.max(...deviationHistory, 0.01);
+  deviationHistory.forEach(v => {
+    const bar = document.createElement('div');
+    bar.className = 'dev-bar';
+    const heightPct = Math.round((v / maxVal) * 100);
+    bar.style.height = heightPct + '%';
+    bar.style.background = v > 0.35 ? 'var(--red)' : v > 0.15 ? 'var(--yellow)' : 'var(--green)';
+    chart.appendChild(bar);
+  });
+
+  const badge = document.getElementById('deviationBadge');
+  const sec = document.getElementById('sec-deviation');
+  const msg = document.getElementById('deviationMsg');
+  if (latest > 0.35) {
+    badge.className = 'badge red'; badge.textContent = 'HIGH';
+    sec.className = 'alert';
+    msg.textContent = `⚠ Deviation spike ${(latest * 100).toFixed(1)}% — prevention protocol active`;
+    appendHealLog('err', `Deviation spike detected: ${(latest * 100).toFixed(1)}%`);
+  } else if (latest > 0.15) {
+    badge.className = 'badge yellow'; badge.textContent = 'MODERATE';
+    sec.className = 'warn';
+    msg.textContent = `Moderate drift detected (${(latest * 100).toFixed(1)}%) — monitoring…`;
+  } else {
+    badge.className = 'badge green'; badge.textContent = 'LOW';
+    sec.className = 'ok';
+    msg.textContent = `All parameters within safe bounds (${(latest * 100).toFixed(1)}%)`;
+  }
+}
+
+// ── Automated Equilibrium Restoration ─────────────────────────
+let equilibriumValue = 0.88;
+
+function updateEquilibrium() {
+  equilibriumValue = Math.min(1, Math.max(0, equilibriumValue + drift(DRIFT_MAGNITUDE_EQUILIBRIUM)));
+  applyEquilibriumUI();
+}
+
+function applyEquilibriumUI() {
+  const pct = Math.round(equilibriumValue * 100);
+  const badge = document.getElementById('equilibriumBadge');
+  const bar   = document.getElementById('equilibriumBar');
+  const pctEl = document.getElementById('equilibriumPct');
+  const msg   = document.getElementById('equilibriumMsg');
+
+  let cls, barColor, label, msgText;
+  if (equilibriumValue >= 0.80) {
+    cls = 'green'; barColor = 'var(--green)'; label = 'BALANCED';
+    msgText = 'System in equilibrium — no intervention required';
+  } else if (equilibriumValue >= 0.55) {
+    cls = 'yellow'; barColor = 'var(--yellow)'; label = 'DRIFTING';
+    msgText = 'Minor drift detected — stabilization in progress';
+  } else {
+    cls = 'red'; barColor = 'var(--red)'; label = 'UNBALANCED';
+    msgText = 'Critical imbalance — restoration protocol engaged';
+    appendHealLog('err', `Equilibrium critical at ${pct}% — auto-restoring`);
+    setTimeout(() => {
+      equilibriumValue = Math.min(1, equilibriumValue + CRITICAL_EQUILIBRIUM_BOOST);
+      applyEquilibriumUI();
+    }, AUTO_RESTORE_DELAY_MS);
+  }
+  badge.className = `badge ${cls}`; badge.textContent = label;
+  bar.style.width = pct + '%'; bar.style.background = barColor;
+  pctEl.textContent = pct + '%';
+  msg.textContent = msgText;
+}
+
+function triggerRestoration() {
+  appendHealLog('ok', 'Manual equilibrium restoration triggered');
+  equilibriumValue = Math.min(1, equilibriumValue + rand(0.05, 0.15));
+  applyEquilibriumUI();
+}
+
+// ── Self-Healing Module ────────────────────────────────────────
+let pendingEvaluations = [];
+const MAX_HEAL_LOG = 60;
+
+function appendHealLog(type, msg) {
+  const log = document.getElementById('healLog');
+  const line = document.createElement('div');
+  line.className = type;
+  line.textContent = `[${now()}] ${msg}`;
+  log.appendChild(line);
+  // Keep log bounded
+  while (log.children.length > MAX_HEAL_LOG) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+function generatePendingEvaluation() {
+  const items = [
+    'Node NSR-7 coherence check',
+    'Lex Amoris expansion boundary',
+    'Vakuum Brücke link stability',
+    'Golden Rule compliance audit',
+    'Independence layer boundary scan',
+    'AI output principle alignment',
+    'FREQ resonance calibration',
+  ];
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function updatePendingBadge() {
+  const badge = document.getElementById('pendingBadge');
+  const count = pendingEvaluations.length;
+  badge.className = 'badge ' + (count === 0 ? 'green' : count < 3 ? 'yellow' : 'red');
+  badge.textContent = count === 0 ? 'CLEAR' : `${count} PENDING`;
+}
+
+function autoHeal() {
+  // Auto-resolve one pending evaluation
+  if (pendingEvaluations.length > 0) {
+    const resolved = pendingEvaluations.shift();
+    appendHealLog('ok', `Auto-resolved: ${resolved}`);
+    updatePendingBadge();
+    coherenceValue = Math.min(1, coherenceValue + 0.04);
+  }
+}
+
+function runSelfHeal() {
+  appendHealLog('ok', '--- Healing cycle initiated ---');
+  const toResolve = [...pendingEvaluations];
+  pendingEvaluations = [];
+  toResolve.forEach(item => appendHealLog('ok', `Resolved: ${item}`));
+  if (toResolve.length === 0) appendHealLog('ok', 'No pending items — system clear');
+  coherenceValue = Math.min(1, coherenceValue + toResolve.length * 0.03 + 0.02);
+  equilibriumValue = Math.min(1, equilibriumValue + 0.05);
+  updatePendingBadge();
+  updateCoherence();
+  applyEquilibriumUI();
+}
+
+// Occasionally add pending evaluations
+function maybeAddPendingEvaluation() {
+  if (Math.random() < PENDING_EVALUATION_PROB) {
+    const item = generatePendingEvaluation();
+    if (!pendingEvaluations.includes(item)) {
+      pendingEvaluations.push(item);
+      appendHealLog('warn', `Pending evaluation added: ${item}`);
+      updatePendingBadge();
+    }
+  }
+}
+
+// ── IPFS Dynamic Fetch ─────────────────────────────────────────
+let autoPollTimer = null;
+
+async function fetchIPFS() {
+  const cid = document.getElementById('ipfsCID').value.trim();
+  const out  = document.getElementById('aiOutput');
+  const ts   = document.getElementById('ipfsTimestamp');
+  if (!cid || cid === 'QmYourCIDHere') {
+    // Simulate AI signal when no real CID is provided
+    const signals = [
+      'SIGNAL::LEX_AMORIS_RESONANCE=0.97 | FREQ=STABLE | NSR=COMPLIANT',
+      'SIGNAL::AUTONOMY_INDEX=0.91 | DRIFT=LOW | HEALING=ACTIVE',
+      'SIGNAL::COHERENCE=HIGH | EQUILIBRIUM=BALANCED | LOOP=CYCLE_OK',
+      'SIGNAL::DEVIATION=LOW | SELF_HEAL=CLEAR | GOVERNANCE=ACTIVE',
+    ];
+    out.textContent = signals[Math.floor(Math.random() * signals.length)];
+    ts.textContent = 'Simulated signal — ' + nowISO();
+    appendHealLog('ok', 'IPFS signal cycle completed (simulated)');
+    return;
+  }
+  out.textContent = 'Fetching…';
+  try {
+    const res  = await fetch(`https://ipfs.io/ipfs/${cid}`);
+    const data = await res.text();
+    out.textContent = data.slice(0, 500);
+    ts.textContent  = 'Fetched at ' + nowISO();
+    appendHealLog('ok', `IPFS data fetched for CID ${cid.slice(0, 12)}…`);
+    // Validate against Lex Amoris: presence of key terms improves coherence
+    const keywords = ['love', 'lex', 'amoris', 'euystacio', 'harmony', 'autonomy'];
+    const hits = keywords.filter(k => data.toLowerCase().includes(k)).length;
+    if (hits > 0) {
+      coherenceValue = Math.min(1, coherenceValue + hits * 0.01);
+      appendHealLog('ok', `Lex Amoris resonance detected in IPFS data (+${hits} keywords)`);
+    }
+  } catch (err) {
+    out.textContent = 'Error fetching data: ' + err;
+    ts.textContent  = nowISO();
+    appendHealLog('err', 'IPFS fetch failed: ' + err.message);
+  }
+}
+
+function toggleAutoPoll() {
+  if (autoPollTimer) { stopAutoPoll(); return; }
+  const interval = Math.max(MIN_POLL_INTERVAL_SEC, parseInt(document.getElementById('pollInterval').value, 10) || DEFAULT_POLL_INTERVAL_SEC) * 1000;
+  fetchIPFS();
+  autoPollTimer = setInterval(fetchIPFS, interval);
+  document.getElementById('pollBtn').textContent = '⏸ Pause Auto-poll';
+  appendHealLog('ok', `Auto-poll started (every ${interval / 1000}s)`);
+}
+
+function stopAutoPoll() {
+  if (autoPollTimer) { clearInterval(autoPollTimer); autoPollTimer = null; }
+  document.getElementById('pollBtn').textContent = '▶ Start Auto-poll';
+}
+
+// ── Footer clock ───────────────────────────────────────────────
+function updateFooter() {
+  document.getElementById('footerTime').textContent = nowISO();
+  document.getElementById('coreTimestamp').textContent = 'Updated: ' + now();
+}
+
+// ── Master real-time loop ──────────────────────────────────────
+let tickCount = 0;
+
+function masterTick() {
+  tickCount++;
+  updateFooter();
+  updateCoherence();
+  updateIndependenceMetrics();
+  updateDeviation();
+  updateEquilibrium();
+  advanceGovernanceLoop();
+  maybeAddPendingEvaluation();
+}
+
+// ── Initialisation ─────────────────────────────────────────────
+(function init() {
+  // Bootstrap layer values
+  INDEPENDENCE_LAYERS.forEach(l => { layerValues[l.id] = rand(0.70, 0.97); });
+  renderIndependenceMetrics();
+  renderGovernanceLoops();
+  appendHealLog('ok', 'Life & AI Command System initialised');
+  appendHealLog('ok', 'Lex Amoris coherence engine active');
+  appendHealLog('ok', 'Recursive governance loops engaged');
+  updatePendingBadge();
+  masterTick();
+  // Tick every 3 seconds for real-time feel
+  setInterval(masterTick, 3000);
+})();
+</script>
 
 </body>
 </html>
