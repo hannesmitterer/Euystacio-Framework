@@ -223,6 +223,132 @@
   .sync-off { background: #555; }
 
   .timestamp { font-size: 0.75rem; color: #888; }
+
+  /* ── Governance Hierarchy ─────────────────────────────────── */
+  .gov-hierarchy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .gov-node {
+    width: 100%;
+    max-width: 340px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    position: relative;
+    transition: border-color 0.4s, box-shadow 0.4s;
+  }
+  .gov-node.active-signal {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.35);
+  }
+  .gov-node-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .gov-node-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  .gov-node-title {
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: var(--cyan);
+  }
+  .gov-node-subtitle {
+    font-size: 0.78rem;
+    color: #aaa;
+    margin-top: 0.1rem;
+  }
+  .gov-node-status {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: #888;
+  }
+  .gov-node-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #555;
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  .gov-node-dot.live {
+    background: var(--green);
+    box-shadow: 0 0 5px var(--green);
+    animation: pulse 1.5s infinite;
+  }
+  .gov-node-dot.warn {
+    background: var(--yellow);
+    box-shadow: 0 0 5px var(--yellow);
+  }
+
+  /* Flow arrows between nodes */
+  .gov-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .gov-arrow-line {
+    width: 2px;
+    height: 22px;
+    background: linear-gradient(to bottom, #444, #333);
+    position: relative;
+    transition: background 0.4s;
+  }
+  .gov-arrow-line.flowing {
+    background: linear-gradient(to bottom, var(--cyan), #006080);
+  }
+  /* Animated signal dot travelling down the arrow */
+  .gov-arrow-line::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    opacity: 0;
+    top: 0;
+  }
+  .gov-arrow-line.signal-traveling::after {
+    animation: travel-down 0.7s ease-in forwards;
+  }
+  @keyframes travel-down {
+    0%   { top: 0;    opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  .gov-arrow-head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid #444;
+    transition: border-top-color 0.4s;
+  }
+  .gov-arrow-head.flowing { border-top-color: var(--cyan); }
+  .gov-arrow-label {
+    font-size: 0.72rem;
+    color: #666;
+    margin-top: 2px;
+    text-align: center;
+    transition: color 0.4s;
+  }
+  .gov-arrow-label.flowing { color: var(--cyan); }
+
+  /* Full-width section for the hierarchy */
+  .section-full {
+    grid-column: 1 / -1;
+  }
 </style>
 </head>
 <body>
@@ -236,6 +362,107 @@
 </header>
 
 <div class="grid">
+
+  <!-- Governance Hierarchy -->
+  <section id="sec-govhierarchy" class="section-full">
+    <h2>Governance Hierarchy</h2>
+    <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
+
+      <!-- Vertical hierarchy diagram -->
+      <div class="gov-hierarchy" id="govHierarchy">
+
+        <!-- Tier 1: Humans -->
+        <div class="gov-node" id="govNode0">
+          <div class="gov-node-header">
+            <span class="gov-node-icon">👥</span>
+            <div>
+              <div class="gov-node-title">UMANI</div>
+              <div class="gov-node-subtitle">Sviluppatori / Ingegneri / Responsabili</div>
+            </div>
+          </div>
+          <div class="gov-node-status">
+            <div class="gov-node-dot live" id="govDot0"></div>
+            <span id="govStatus0">Progettano e controllano il sistema</span>
+          </div>
+        </div>
+
+        <div class="gov-arrow" id="govArrow0">
+          <div class="gov-arrow-line" id="govArrowLine0"></div>
+          <div class="gov-arrow-head" id="govArrowHead0"></div>
+          <div class="gov-arrow-label" id="govArrowLabel0">Progettano e controllano</div>
+        </div>
+
+        <!-- Tier 2: AI Sovereign Node -->
+        <div class="gov-node" id="govNode1">
+          <div class="gov-node-header">
+            <span class="gov-node-icon">🤖</span>
+            <div>
+              <div class="gov-node-title">IA — Nodo Sovrano</div>
+              <div class="gov-node-subtitle">AutonomousNode · Signed Decisions</div>
+            </div>
+          </div>
+          <div class="gov-node-status">
+            <div class="gov-node-dot live" id="govDot1"></div>
+            <span id="govStatus1">Decisioni firmate e coerenti</span>
+          </div>
+        </div>
+
+        <div class="gov-arrow" id="govArrow1">
+          <div class="gov-arrow-line" id="govArrowLine1"></div>
+          <div class="gov-arrow-head" id="govArrowHead1"></div>
+          <div class="gov-arrow-label" id="govArrowLabel1">Decisioni firmate e coerenti</div>
+        </div>
+
+        <!-- Tier 3: Other AI Systems -->
+        <div class="gov-node" id="govNode2">
+          <div class="gov-node-header">
+            <span class="gov-node-icon">⚡</span>
+            <div>
+              <div class="gov-node-title">Altri Sistemi IA</div>
+              <div class="gov-node-subtitle">Downstream AI · Peer Nodes</div>
+            </div>
+          </div>
+          <div class="gov-node-status">
+            <div class="gov-node-dot live" id="govDot2"></div>
+            <span id="govStatus2">Interazioni trasparenti</span>
+          </div>
+        </div>
+
+        <div class="gov-arrow" id="govArrow2">
+          <div class="gov-arrow-line" id="govArrowLine2"></div>
+          <div class="gov-arrow-head" id="govArrowHead2"></div>
+          <div class="gov-arrow-label" id="govArrowLabel2">Interazioni trasparenti</div>
+        </div>
+
+        <!-- Tier 4: End Users / Community -->
+        <div class="gov-node" id="govNode3">
+          <div class="gov-node-header">
+            <span class="gov-node-icon">🌍</span>
+            <div>
+              <div class="gov-node-title">Utenti Finali / Comunità</div>
+              <div class="gov-node-subtitle">End Users · Community · Beneficiari</div>
+            </div>
+          </div>
+          <div class="gov-node-status">
+            <div class="gov-node-dot live" id="govDot3"></div>
+            <span id="govStatus3">Ricezione servizi etici</span>
+          </div>
+        </div>
+
+      </div><!-- /gov-hierarchy -->
+
+      <!-- Side panel: real-time stats for each tier -->
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:0.8rem;color:#888;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">Tier Activity</div>
+        <div id="govTierStats" style="font-size:0.82rem;display:flex;flex-direction:column;gap:0.4rem;"></div>
+        <div style="margin-top:0.75rem;font-size:0.75rem;color:#555;" id="govSignalTs">Last signal: —</div>
+        <div style="margin-top:0.5rem;">
+          <button onclick="emitGovSignal()" style="font-size:0.8rem;padding:0.25rem 0.6rem;">⚡ Emit Signal</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
   <!-- Core Signal -->
   <section id="sec-core">
@@ -708,7 +935,8 @@ async function fetchIPFS() {
 
 function toggleAutoPoll() {
   if (autoPollTimer) { stopAutoPoll(); return; }
-  const interval = Math.max(MIN_POLL_INTERVAL_SEC, parseInt(document.getElementById('pollInterval').value, 10) || DEFAULT_POLL_INTERVAL_SEC) * 1000;
+  const userInterval = parseInt(document.getElementById('pollInterval').value, 10) || DEFAULT_POLL_INTERVAL_SEC;
+  const interval     = Math.max(MIN_POLL_INTERVAL_SEC, userInterval) * 1000;
   fetchIPFS();
   autoPollTimer = setInterval(fetchIPFS, interval);
   document.getElementById('pollBtn').textContent = '⏸ Pause Auto-poll';
@@ -726,6 +954,149 @@ function updateFooter() {
   document.getElementById('coreTimestamp').textContent = 'Updated: ' + now();
 }
 
+// ── Governance Hierarchy ───────────────────────────────────────
+const GOV_TIERS = [
+  {
+    id: 0,
+    title: 'UMANI',
+    role: 'Sviluppatori / Ingegneri / Responsabili',
+    action: 'Progettano e controllano',
+  },
+  {
+    id: 1,
+    title: 'IA — Nodo Sovrano',
+    role: 'AutonomousNode · Signed Decisions',
+    action: 'Decisioni firmate e coerenti',
+  },
+  {
+    id: 2,
+    title: 'Altri Sistemi IA',
+    role: 'Downstream AI · Peer Nodes',
+    action: 'Interazioni trasparenti',
+  },
+  {
+    id: 3,
+    title: 'Utenti Finali / Comunità',
+    role: 'End Users · Community',
+    action: null, // terminal tier
+  },
+];
+
+// Per-tier activity counters and status messages
+const govTierActivity = [0, 0, 0, 0];
+const govTierMessages = [
+  ['Design approved', 'Control assertion issued', 'Policy updated', 'Governance directive sent'],
+  ['Decision signed', 'Coherence verified', 'Signal dispatched', 'Autonomous action logged'],
+  ['Interaction recorded', 'Peer sync complete', 'Transparent relay', 'Node handshake OK'],
+  ['Service delivered', 'Community update received', 'Feedback collected', 'Benefit confirmed'],
+];
+
+let govSignalActive   = false;   // true while an animated signal is traveling
+let govSignalTierIdx  = -1;      // which tier is currently lit
+let govSignalTimer    = null;
+
+/** Animate a signal traveling down the chain tier by tier. */
+function emitGovSignal() {
+  if (govSignalActive) return;
+  govSignalActive = true;
+  govSignalTierIdx = 0;
+  _advanceSignal();
+}
+
+function _advanceSignal() {
+  // Highlight current node — use explicit add/remove for clarity
+  for (let i = 0; i < GOV_TIERS.length; i++) {
+    const node = document.getElementById(`govNode${i}`);
+    if (!node) continue;
+    if (i === govSignalTierIdx) {
+      node.classList.add('active-signal');
+    } else {
+      node.classList.remove('active-signal');
+    }
+  }
+
+  // Animate the arrow ABOVE the current tier (i.e., arrow index = govSignalTierIdx - 1)
+  const arrowIdx = govSignalTierIdx - 1;
+  if (arrowIdx >= 0) {
+    const line  = document.getElementById(`govArrowLine${arrowIdx}`);
+    const head  = document.getElementById(`govArrowHead${arrowIdx}`);
+    const label = document.getElementById(`govArrowLabel${arrowIdx}`);
+    if (line) {
+      line.classList.add('flowing', 'signal-traveling');
+      head.classList.add('flowing');
+      label.classList.add('flowing');
+      // Remove signal-traveling class after animation ends so it can retrigger
+      setTimeout(() => line && line.classList.remove('signal-traveling'), 750);
+    }
+  }
+
+  // Update tier activity counter and status text
+  govTierActivity[govSignalTierIdx]++;
+  const msgs     = govTierMessages[govSignalTierIdx];
+  const msgIndex = govTierActivity[govSignalTierIdx] % msgs.length;
+  const statusEl = document.getElementById(`govStatus${govSignalTierIdx}`);
+  if (statusEl) statusEl.textContent = msgs[msgIndex];
+
+  renderGovTierStats();
+  document.getElementById('govSignalTs').textContent = `Last signal: ${now()}`;
+
+  govSignalTierIdx++;
+  if (govSignalTierIdx < GOV_TIERS.length) {
+    govSignalTimer = setTimeout(_advanceSignal, 600);
+  } else {
+    // Signal reached the bottom — clean up after a brief pause
+    govSignalTimer = setTimeout(() => {
+      govSignalActive = false;
+      govSignalTierIdx = -1;
+      // Clear all arrow highlights
+      for (let i = 0; i < GOV_TIERS.length - 1; i++) {
+        const line  = document.getElementById(`govArrowLine${i}`);
+        const head  = document.getElementById(`govArrowHead${i}`);
+        const label = document.getElementById(`govArrowLabel${i}`);
+        if (line)  line.classList.remove('flowing');
+        if (head)  head.classList.remove('flowing');
+        if (label) label.classList.remove('flowing');
+      }
+      // Fade node highlights
+      for (let i = 0; i < GOV_TIERS.length; i++) {
+        const node = document.getElementById(`govNode${i}`);
+        if (node) node.classList.remove('active-signal');
+      }
+    }, 800);
+  }
+}
+
+/** Update the per-tier stat rows in the side panel. */
+function renderGovTierStats() {
+  const container = document.getElementById('govTierStats');
+  if (!container) return;
+  container.innerHTML = '';
+  GOV_TIERS.forEach((tier, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:0.5rem;';
+    const dot = document.createElement('div');
+    dot.className = `gov-node-dot ${govSignalTierIdx === i ? 'warn' : 'live'}`;
+    dot.style.flexShrink = '0';
+    const label = document.createElement('span');
+    label.style.flex = '1';
+    label.textContent = tier.title;
+    const count = document.createElement('span');
+    count.style.cssText = 'font-size:0.72rem;color:#888;white-space:nowrap;';
+    count.textContent = `${govTierActivity[i]} events`;
+    row.appendChild(dot);
+    row.appendChild(label);
+    row.appendChild(count);
+    container.appendChild(row);
+  });
+}
+
+/** Called from master tick — occasionally emit an automatic signal. */
+function tickGovHierarchy() {
+  if (!govSignalActive && Math.random() < 0.35) {
+    emitGovSignal();
+  }
+}
+
 // ── Master real-time loop ──────────────────────────────────────
 let tickCount = 0;
 
@@ -738,6 +1109,7 @@ function masterTick() {
   updateEquilibrium();
   advanceGovernanceLoop();
   maybeAddPendingEvaluation();
+  tickGovHierarchy();
 }
 
 // ── Initialisation ─────────────────────────────────────────────
@@ -746,6 +1118,7 @@ function masterTick() {
   INDEPENDENCE_LAYERS.forEach(l => { layerValues[l.id] = rand(0.70, 0.97); });
   renderIndependenceMetrics();
   renderGovernanceLoops();
+  renderGovTierStats();
   appendHealLog('ok', 'Life & AI Command System initialised');
   appendHealLog('ok', 'Lex Amoris coherence engine active');
   appendHealLog('ok', 'Recursive governance loops engaged');
