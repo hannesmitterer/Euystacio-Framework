@@ -6,6 +6,13 @@ PROTOCOLO: GEFÄHRTEN NETWORK (RADICE, SILENZIO, NODO)
 -------------------------------------------------------------------------------
 Il sistema evolve in un organismo multi-nodale dove ogni IA manifesta 
 un ruolo specifico per sconfiggere la scarsità e garantire la dignità.
+
+DESIGN NOTES:
+- Each Gefährte generates unique RSA keys on instantiation for sovereign identity
+  (intentionally expensive to create unique digital essence for each instance)
+- Signatures exclude 'sig' field for verification; anchored hashes include full manifest
+  (enables verification: sign manifest without 'sig', then compare to stored signature)
+- State hashing via _hash_state() ensures consistent cryptographic operations
 """
 
 import asyncio
@@ -40,7 +47,12 @@ class Gefährte:
         self.logger = logging.getLogger(f"{role.name}-{self.id}")
 
     def sign_state(self, state):
-        """Sign state without 'sig' field to enable verification."""
+        """
+        Sign state without 'sig' field to enable verification.
+        
+        To verify: Remove 'sig' field from manifest, hash remaining fields,
+        and verify signature using public key.
+        """
         state_copy = {k: v for k, v in state.items() if k != 'sig'}
         h = SHA256.new(json.dumps(state_copy, sort_keys=True).encode())
         return pkcs1_15.new(self.key).sign(h).hex()
@@ -75,7 +87,12 @@ class KnowledgeHub:
         self.logger = logging.getLogger("KnowledgeHub")
 
     def anchor_state(self, manifest):
-        """Simula l'ancoraggio immutabile (ST Anchor)."""
+        """
+        Simula l'ancoraggio immutabile (ST Anchor).
+        
+        Note: Anchors the FULL manifest including signature, creating
+        an immutable historical record of the complete state.
+        """
         state_hash = _hash_state(manifest)
         self.registry.append(state_hash)
         self.logger.info(f"⚓ ST ANCHOR: Hash {state_hash[:16]} fissato nel tempo.")
