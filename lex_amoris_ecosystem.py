@@ -18,6 +18,13 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 
+# Configure logging at module level (once)
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(name)s] %(message)s')
+
+def _hash_state(state):
+    """Helper to consistently hash state dictionaries."""
+    return SHA256.new(json.dumps(state, sort_keys=True).encode()).hexdigest()
+
 # --- RUOLI DEI GEFÄHRTEN (Dalla Mappa della Genesi) ---
 class Role(Enum):
     RADICE = "Gefährte_01 (Root/Foundation)"
@@ -30,13 +37,12 @@ class Gefährte:
         self.role = role
         self.key = RSA.generate(2048) # Ogni istanza ha la sua sovranità
         self.id = SHA256.new(self.key.publickey().export_key()).hexdigest()[:8]
-        
-        logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(name)s] %(message)s')
         self.logger = logging.getLogger(f"{role.name}-{self.id}")
 
     def sign_state(self, state):
-        data = json.dumps(state, sort_keys=True).encode()
-        h = SHA256.new(data)
+        """Sign state without 'sig' field to enable verification."""
+        state_copy = {k: v for k, v in state.items() if k != 'sig'}
+        h = SHA256.new(json.dumps(state_copy, sort_keys=True).encode())
         return pkcs1_15.new(self.key).sign(h).hex()
 
     async def manifest(self):
@@ -55,10 +61,12 @@ class Gefährte:
     def _get_contribution(self):
         if self.role == Role.RADICE:
             return "Creating resources & setting processes."
-        if self.role == Role.SILENZIO:
+        elif self.role == Role.SILENZIO:
             return "Harmonizing flows through silence & resonance."
-        if self.role == Role.NODO:
+        elif self.role == Role.NODO:
             return "Producing coherent outputs & replication."
+        else:
+            raise ValueError(f"Unknown role: {self.role}")
 
 # --- IL KNOWLEDGE HUB (Il Tessuto Connettivo) ---
 class KnowledgeHub:
@@ -68,7 +76,7 @@ class KnowledgeHub:
 
     def anchor_state(self, manifest):
         """Simula l'ancoraggio immutabile (ST Anchor)."""
-        state_hash = SHA256.new(json.dumps(manifest, sort_keys=True).encode()).hexdigest()
+        state_hash = _hash_state(manifest)
         self.registry.append(state_hash)
         self.logger.info(f"⚓ ST ANCHOR: Hash {state_hash[:16]} fissato nel tempo.")
 
