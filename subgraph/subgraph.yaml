@@ -1,0 +1,89 @@
+specVersion: 0.0.5
+description: >
+  Euystacio AI Ecosystem subgraph — indexes events from VitalTrust,
+  SilentBridge and BridgeAggregator for use in predictive analytics
+  (Step 7: Prophet / LSTM time-series models).
+schema:
+  file: ./schema.graphql
+dataSources:
+  # -------------------------------------------------------------------------
+  # VitalTrust – claim frequency & reputation updates
+  # -------------------------------------------------------------------------
+  - kind: ethereum
+    name: VitalTrust
+    network: optimism
+    source:
+      # Replace with deployed address after mainnet / testnet deployment
+      address: "0x0000000000000000000000000000000000000001"
+      abi: VitalTrust
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ClaimEvent
+        - ReputationUpdateEvent
+      abis:
+        - name: VitalTrust
+          file: ./abis/VitalTrust.json
+      eventHandlers:
+        - event: Claimed(indexed address,uint256,uint256)
+          handler: handleClaimed
+        - event: ReputationUpdate(indexed address,int256,string)
+          handler: handleReputationUpdate
+      file: ./src/vitalTrust.ts
+
+  # -------------------------------------------------------------------------
+  # SilentBridge – message volume & bio-signal state
+  # -------------------------------------------------------------------------
+  - kind: ethereum
+    name: SilentBridge
+    network: optimism
+    source:
+      address: "0x0000000000000000000000000000000000000002"
+      abi: SilentBridge
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - MessageEvent
+        - BioSignalEvent
+      abis:
+        - name: SilentBridge
+          file: ./abis/SilentBridge.json
+      eventHandlers:
+        - event: Message(indexed address,indexed bytes32,string,uint256)
+          handler: handleMessage
+        - event: BioSignal(indexed address,string,bool,uint256)
+          handler: handleBioSignal
+      file: ./src/silentBridge.ts
+
+  # -------------------------------------------------------------------------
+  # BridgeAggregator – L2 pool balances & rebalancing history
+  # -------------------------------------------------------------------------
+  - kind: ethereum
+    name: BridgeAggregator
+    network: optimism
+    source:
+      address: "0x0000000000000000000000000000000000000003"
+      abi: BridgeAggregator
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - RebalancedEvent
+        - PoolBalanceSnapshot
+      abis:
+        - name: BridgeAggregator
+          file: ./abis/BridgeAggregator.json
+      eventHandlers:
+        - event: Rebalanced(indexed bytes32,indexed bytes32,uint256)
+          handler: handleRebalanced
+        - event: PoolBalanceUpdated(indexed bytes32,uint256)
+          handler: handlePoolBalanceUpdated
+      file: ./src/bridgeAggregator.ts

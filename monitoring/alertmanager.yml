@@ -1,0 +1,52 @@
+# Alertmanager configuration for Euystacio AI Ecosystem (Step 8)
+#
+# Sends Telegram and Discord notifications for critical/warning alerts defined
+# in alert-rules.yml.
+#
+# IMPORTANT: Replace placeholder values with real bot tokens / chat IDs before
+#            deploying to production.  Never commit live credentials.
+
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ["alertname", "l2"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: "telegram-default"
+  routes:
+    - match:
+        severity: critical
+      receiver: "telegram-critical"
+      repeat_interval: 15m
+    - match:
+        severity: warning
+      receiver: "telegram-default"
+      repeat_interval: 1h
+
+receivers:
+  - name: "telegram-default"
+    telegram_configs:
+      - bot_token: "${TELEGRAM_BOT_TOKEN}"
+        chat_id: "${TELEGRAM_CHAT_ID}"
+        parse_mode: "Markdown"
+        message: "{{ range .Alerts }}{{ .Annotations.telegram_message }}{{ end }}"
+
+  - name: "telegram-critical"
+    telegram_configs:
+      - bot_token: "${TELEGRAM_BOT_TOKEN}"
+        chat_id: "${TELEGRAM_CHAT_ID}"
+        parse_mode: "Markdown"
+        message: "{{ range .Alerts }}{{ .Annotations.telegram_message }}{{ end }}"
+    webhook_configs:
+      # Optional Discord webhook mirror for critical alerts
+      - url: "${DISCORD_WEBHOOK_URL}"
+        send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: critical
+    target_match:
+      severity: warning
+    equal: ["alertname", "l2"]
